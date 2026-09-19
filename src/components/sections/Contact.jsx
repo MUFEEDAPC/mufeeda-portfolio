@@ -1,4 +1,4 @@
-import { lazy, Suspense, useRef, useState } from 'react';
+import { lazy, Suspense, useCallback, useRef, useState } from 'react';
 import { LoaderCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { GitHubIcon, LinkedInIcon } from '../ui/SocialIcons';
 import { contact, socials } from '../../data/portfolio';
@@ -6,6 +6,7 @@ import { formatExternalUrl, validateContactForm } from '../../utils/validators';
 import { submitContact } from '../../utils/submitContact';
 import SectionHeader from '../ui/SectionHeader';
 import MagneticButton from '../ui/MagneticButton';
+import Snackbar from '../ui/Snackbar';
 import SceneBoundary from '../three/SceneBoundary';
 
 const ContactScene = lazy(() => import('../three/ContactScene'));
@@ -16,7 +17,9 @@ export default function Contact() {
   const [form, setForm] = useState(INITIAL);
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle');
+  const [toast, setToast] = useState(null);
   const sendingRef = useRef(false);
+  const dismissToast = useCallback(() => setToast(null), []);
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -52,8 +55,27 @@ export default function Contact() {
       });
       setForm(INITIAL);
       setStatus('success');
+      setToast({
+        variant: 'success',
+        message: 'Message sent successfully. Thanks for reaching out!',
+        duration: 5000,
+      });
     } catch (error) {
-      setStatus(error.message === 'form_activation' ? 'activation' : 'error');
+      const next = error.message === 'form_activation' ? 'activation' : 'error';
+      setStatus(next);
+      setToast(
+        next === 'activation'
+          ? {
+              variant: 'warning',
+              duration: 8000,
+              message: `Check ${contact.email} (and Spam), click Activate Form, then submit again.`,
+            }
+          : {
+              variant: 'error',
+              duration: 6000,
+              message: 'Something went wrong. Please try again or contact me directly.',
+            },
+      );
     } finally {
       sendingRef.current = false;
     }
@@ -162,27 +184,17 @@ export default function Contact() {
               )}
             </MagneticButton>
 
-            {status === 'success' && (
-              <p className="mt-4 text-sm text-emerald-300" role="status">
-                Message sent successfully. Thanks for reaching out!
-              </p>
-            )}
-            {status === 'activation' && (
-              <p className="mt-4 text-sm text-amber-200" role="status">
-                Check {contact.email} (and Spam) for an email from FormSubmit, then click
-                {' '}
-                <strong>Activate Form</strong>
-                . After that, submit again and the message will arrive in your inbox.
-              </p>
-            )}
-            {status === 'error' && (
-              <p className="mt-4 text-sm text-red-300" role="alert">
-                Something went wrong. Please try again or contact me directly.
-              </p>
-            )}
           </form>
         </div>
       </div>
+
+      <Snackbar
+        open={Boolean(toast)}
+        variant={toast?.variant}
+        message={toast?.message}
+        duration={toast?.duration}
+        onClose={dismissToast}
+      />
     </section>
   );
 }
