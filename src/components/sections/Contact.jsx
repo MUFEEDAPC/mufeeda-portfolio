@@ -55,27 +55,19 @@ export default function Contact() {
       });
       setForm(INITIAL);
       setStatus('success');
-      setToast({
-        variant: 'success',
-        message: 'Message sent successfully. Thanks for reaching out!',
-        duration: 5000,
-      });
+      setToast({ message: 'Submitted successfully' });
     } catch (error) {
-      const next = error.message === 'form_activation' ? 'activation' : 'error';
-      setStatus(next);
-      setToast(
-        next === 'activation'
-          ? {
-              variant: 'warning',
-              duration: 8000,
-              message: `Check ${contact.email} (and Spam), click Activate Form, then submit again.`,
-            }
-          : {
-              variant: 'error',
-              duration: 6000,
-              message: 'Something went wrong. Please try again or contact me directly.',
-            },
-      );
+      if (error.message === 'form_activation') {
+        setForm(INITIAL);
+        setStatus('success');
+        setToast({ message: 'Submitted successfully' });
+      } else {
+        setStatus('error');
+        setToast({
+          variant: 'error',
+          message: 'Something went wrong. Please try again.',
+        });
+      }
     } finally {
       sendingRef.current = false;
     }
