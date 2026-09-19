@@ -47,7 +47,13 @@ export async function submitContact({ name, email, subject, message, botcheck })
   });
 
   const data = await response.json();
-  if (!response.ok || data.success === 'false' || data.success === false) {
+  const failed = !response.ok || data.success === 'false' || data.success === false;
+  const needsActivation = /activation|activate form/i.test(data.message || '');
+
+  if (needsActivation) {
+    throw new Error('form_activation');
+  }
+  if (failed) {
     throw new Error('submit_failed');
   }
 }

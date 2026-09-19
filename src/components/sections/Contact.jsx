@@ -52,8 +52,8 @@ export default function Contact() {
       });
       setForm(INITIAL);
       setStatus('success');
-    } catch {
-      setStatus('error');
+    } catch (error) {
+      setStatus(error.message === 'form_activation' ? 'activation' : 'error');
     } finally {
       sendingRef.current = false;
     }
@@ -165,6 +165,14 @@ export default function Contact() {
             {status === 'success' && (
               <p className="mt-4 text-sm text-emerald-300" role="status">
                 Message sent successfully. Thanks for reaching out!
+              </p>
+            )}
+            {status === 'activation' && (
+              <p className="mt-4 text-sm text-amber-200" role="status">
+                Check {contact.email} (and Spam) for an email from FormSubmit, then click
+                {' '}
+                <strong>Activate Form</strong>
+                . After that, submit again and the message will arrive in your inbox.
               </p>
             )}
             {status === 'error' && (
