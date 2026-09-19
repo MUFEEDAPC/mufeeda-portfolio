@@ -30,3 +30,31 @@ Until the key is set, the form opens your email app with the same fields pre-fil
 - `npm run dev` — local development
 - `npm run build` — production build
 - `npm run preview` — preview the production build
+
+## Deploy on Vercel
+
+This is a Vite app. Vercel should use `npm run build` and the `dist` folder.
+
+### Option A — Vercel CLI
+
+```bash
+npx vercel login
+npx vercel --prod
+```
+
+### Option B — GitHub + Vercel
+
+```bash
+git remote add origin https://github.com/MUFEEDAPC/mufeeda-portfolio.git
+git push -u origin main
+```
+
+Then open [vercel.com/new](https://vercel.com/new), import `mufeeda-portfolio`, and deploy.
+
+In the Vercel project settings, add:
+
+```env
+VITE_WEB3FORMS_ACCESS_KEY=your_access_key_here
+```
+
+Redeploy after adding the key so the contact form emails `pcmufeeda@gmail.com`.
