@@ -3,6 +3,7 @@ import { LoaderCircle, Mail, MapPin, Phone, Send } from 'lucide-react';
 import { GitHubIcon, LinkedInIcon } from '../ui/SocialIcons';
 import { contact, socials } from '../../data/portfolio';
 import { formatExternalUrl, validateContactForm } from '../../utils/validators';
+import { submitContact } from '../../utils/submitContact';
 import SectionHeader from '../ui/SectionHeader';
 import MagneticButton from '../ui/MagneticButton';
 import SceneBoundary from '../three/SceneBoundary';
@@ -16,7 +17,6 @@ export default function Contact() {
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle');
   const sendingRef = useRef(false);
-  const accessKey = import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
 
   const onChange = (event) => {
     const { name, value } = event.target;
@@ -46,46 +46,10 @@ export default function Contact() {
     setStatus('loading');
 
     try {
-      if (!accessKey) {
-        const subject = encodeURIComponent(result.values.subject);
-        const body = encodeURIComponent(
-          `Name: ${result.values.name}\nEmail: ${result.values.email}\n\n${result.values.message}`
-        );
-        window.location.href = `mailto:${contact.email}?subject=${subject}&body=${body}`;
-        setForm(INITIAL);
-        setStatus('success');
-        return;
-      }
-
-      const response = await fetch('https://api.web3forms.com/submit', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        body: JSON.stringify({
-          access_key: accessKey,
-          name: result.values.name,
-          email: result.values.email,
-          replyto: result.values.email,
-          subject: result.values.subject,
-          message: [
-            `Name: ${result.values.name}`,
-            `Email: ${result.values.email}`,
-            `Subject: ${result.values.subject}`,
-            '',
-            result.values.message,
-          ].join('\n'),
-          botcheck: form.botcheck,
-          from_name: result.values.name,
-        }),
+      await submitContact({
+        ...result.values,
+        botcheck: form.botcheck,
       });
-
-      const data = await response.json();
-      if (!response.ok || !data.success) {
-        throw new Error('submit_failed');
-      }
-
       setForm(INITIAL);
       setStatus('success');
     } catch {
